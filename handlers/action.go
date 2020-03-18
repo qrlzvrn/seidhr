@@ -15,10 +15,11 @@ var msg, newKeyboard, newText tgbotapi.Chattable
 // Реализация функционала команд /start, /help и тех, что будут добавлены в будущем
 
 // Start ...
-func Start(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, erro.Err) {
+func Start(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
 	//------------
 	//-------------
 	//--------------
+	return nil, nil, nil, nil
 }
 
 // Help ...
@@ -26,6 +27,7 @@ func Help(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable, tg
 	//------------
 	//-------------
 	//--------------
+	return nil, nil, nil
 }
 
 // Default ...
@@ -33,4 +35,5 @@ func Default(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable,
 	//------------
 	//-------------
 	//--------------
+	return nil, nil, nil
 }
