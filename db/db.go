@@ -127,19 +127,19 @@ func CheckSubscriptions(db *sqlx.DB, tguserID int) (bool, error) {
 
 // FindSubMed - Находит все лекарства, на которые подписаны пользователи
 // и возварщает слайс с их id
-func FindSubMed(db *sqlx.DB) ([]string, error) {
+func FindSubMed(db *sqlx.DB) ([]int, error) {
 	rows, err := db.Query("SELECT DISTINCT medicament_id FROM subscription")
 	if err != nil {
 		return nil, err
 	}
 
-	subMeds := []string{}
+	subMeds := []int{}
 
 	for rows.Next() {
 		var id int
 
 		rows.Scan(&id)
-		subMeds = append(subMeds, strconv.Itoa(id))
+		subMeds = append(subMeds, id)
 		defer rows.Close()
 	}
 	return subMeds, nil
