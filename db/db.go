@@ -46,6 +46,27 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 	return isExist, nil
 }
 
+// CheckUserState ...
+func CheckUserState(db *sqlx.DB, tguserID int) (string, error) {
+	var state string
+	err := db.QueryRow("SELECT exists (select 1 from tguser where id=$1)", tguserID).Scan(&state)
+	if err != nil {
+		return "", err
+	}
+	return state, nil
+}
+
+// ChangeUserState ...
+func ChangeUserState(db *sqlx.DB, tguserID int, state string) error {
+	tx := db.MustBegin()
+	tx.MustExec("UPDATE tguser SET state=$1 where id=$2", state, tguserID)
+	err := tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // InitMedList ...
 func InitMedList(db sqlx.DB, medLines []string) error {
 	tx := db.MustBegin()
