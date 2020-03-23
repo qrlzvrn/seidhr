@@ -1,4 +1,4 @@
-package mde
+package med
 
 import (
 	"encoding/json"
