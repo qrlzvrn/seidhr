@@ -82,7 +82,7 @@ func InitMedList(db sqlx.DB, medLines []string) error {
 }
 
 // CheckMed ...
-func CheckMed(db sqlx.DB, medName string) (bool, error) {
+func CheckMed(db *sqlx.DB, medName string) (bool, error) {
 
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from medicament where title=$1)", medName).Scan(&isExist)
