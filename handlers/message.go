@@ -23,21 +23,19 @@ func MessageHandler(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Cha
 		cmd := message.Command()
 		switch cmd {
 		case "start":
-			//-------
-			//--------
-			//---------
-			return nil, nil, nil, nil
+			msg, newKeyboard, newText, err := Start(message)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			return msg, newKeyboard, newText, nil
 
 		case "help":
-			//-------
-			//--------
-			//---------
-			return nil, nil, nil, nil
+			msg, newKeyboard, newText := Help(message)
+
+			return msg, newKeyboard, newText, nil
 		default:
-			//-------
-			//--------
-			//---------
-			return nil, nil, nil, nil
+			msg, newKeyboard, newText := Default(message)
+			return msg, newKeyboard, newText, nil
 		}
 	} else {
 		//-------
