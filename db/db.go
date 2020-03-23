@@ -124,3 +124,53 @@ func CheckSubscriptions(db *sqlx.DB, tguserID int) (bool, error) {
 	}
 	return isExist, nil
 }
+
+// FindSubMed - Находит все лекарства, на которые подписаны пользователи
+// и возварщает слайс с их id
+func FindSubMed(db *sqlx.DB) ([]string, error) {
+	rows, err := db.Query("SELECT DISTINCT medicament_id FROM subscription")
+	if err != nil {
+		return nil, err
+	}
+
+	subMeds := []string{}
+
+	for rows.Next() {
+		var id int
+
+		rows.Scan(&id)
+		subMeds = append(subMeds, strconv.Itoa(id))
+		defer rows.Close()
+	}
+	return subMeds, nil
+}
+
+// FindUsersWhoSub - находит пользователей подписанных на определенное лекарство,
+// id которого принимается на вход, и возвращает слайс с id этих пользователей
+func FindUsersWhoSub(db *sqlx.DB, medicamentID int) ([]int, error) {
+	rows, err := db.Query("SELECT tguser_id FROM subscription WHERE medicament_id = $1", medicamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []int{}
+
+	for rows.Next() {
+		var id int
+
+		rows.Scan(&id)
+		users = append(users, id)
+		defer rows.Close()
+	}
+	return users, nil
+}
+
+// FindChatID - находит пользователя и возвращает его chatID
+func FindChatID(db *sqlx.DB, tguserID int) (int, error) {
+	var chatID int
+	err := db.QueryRow("SELECT chat_id FROM tguser WHERE id = $1", tguserID).Scan(&chatID)
+	if err != nil {
+		return 0, err
+	}
+	return chatID, nil
+}
