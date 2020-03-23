@@ -25,7 +25,7 @@ func ConnectToDB() (*sqlx.DB, error) {
 }
 
 // CreateUser ...
-func CreateUser(db *sqlx.DB, tguserID int, chatID int) error {
+func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	tx := db.MustBegin()
 	tx.MustExec("INSERT INTO tguser (id, chat_id) VALUES ($1, $2)", tguserID, chatID)
 	err := tx.Commit()
