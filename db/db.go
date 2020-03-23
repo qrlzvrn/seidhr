@@ -174,3 +174,31 @@ func FindChatID(db *sqlx.DB, tguserID int) (int, error) {
 	}
 	return chatID, nil
 }
+
+func FindMed(db *sqlx.DB, medicamentID int) (string, error) {
+	var medTitle string
+	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
+	if err != nil {
+		return "", err
+	}
+	return medTitle, nil
+}
+
+func CheckAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
+	var availible bool
+	err := db.QueryRow("SELECT availability FROM medicament WHERE id = $1", medicamentID).Scan(&availible)
+	if err != nil {
+		return false, err
+	}
+	return availible, nil
+}
+
+func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
+	tx := db.MustBegin()
+	tx.MustExec("UPDATE medicament SET availability = $1 WHERE id = $2", value, medicamentID)
+	err := tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
