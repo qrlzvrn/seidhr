@@ -223,3 +223,13 @@ func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 	}
 	return nil
 }
+
+// IsUserSubThisMed - проверяет подписан ли пользователь на данное лекарство
+func IsUserSubThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, error) {
+	var isExist bool
+	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1 AND medicament_id=$2)", tguserID, medicamentID).Scan(&isExist)
+	if err != nil {
+		return false, err
+	}
+	return isExist, nil
+}
