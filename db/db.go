@@ -233,3 +233,13 @@ func IsUserSubThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, error)
 	}
 	return isExist, nil
 }
+
+// FindMedID - находит id необхомодимого лекартсва
+func FindMedID(db *sqlx.DB, medTitle string) (int, error) {
+	var medicamentID int
+	err := db.QueryRow("SELECT title FROM medicament WHERE title = $1", medTitle).Scan(&medicamentID)
+	if err != nil {
+		return 0, err
+	}
+	return medicamentID, nil
+}
