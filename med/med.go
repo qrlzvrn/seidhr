@@ -77,8 +77,8 @@ func ReqMedInfo(medTitle string) (Jsn, error) {
 	return j, nil
 }
 
-// AnalyzeJSON - Проверяет json структуру на наличие ошибок
-func AnalyzeJSON(j Jsn) bool {
+// IsErrExistInJSON - Проверяет json структуру на наличие ошибок
+func IsErrExistInJSON(j Jsn) bool {
 	if u := j.Errors; u != "" {
 		return false
 	}
