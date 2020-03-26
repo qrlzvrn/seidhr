@@ -35,6 +35,9 @@ var ViewMedKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("Назад", "backToHome"),
 	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("Отписаться", "unsubscribe"),
+	),
 )
 
 // ViewMedWithSubKeyboard - клавиатура просмотра лекарства
