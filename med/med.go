@@ -86,7 +86,7 @@ func IsErrExistInJSON(j Jsn) bool {
 }
 
 // ParseJSON - парсит json структуру и возвращает готовый текст сообщения для пользователя
-func ParseJSON(j Jsn) {
+func ParseJSON(j Jsn) string {
 	var text []string
 
 	title := fmt.Sprintln("Название: ", j.Model.Result[0].Name)
@@ -126,5 +126,5 @@ func ParseJSON(j Jsn) {
 		msg += i
 	}
 
-	fmt.Println(msg)
+	return msg
 }
