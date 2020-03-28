@@ -2,6 +2,7 @@ package handlers
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/qrlzvrn/seidhr/db"
 )
 
 // MessageHandler - обрабатывает обычные сообщения от пользователей
@@ -38,9 +39,34 @@ func MessageHandler(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Cha
 			return msg, newKeyboard, newText, nil
 		}
 	} else {
-		//-------
-		//--------
-		//---------
+		tguserID := message.From.ID
+
+		conn, err := db.ConnectToDB()
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		defer conn.Close()
+
+		state, err := db.CheckUserState(conn, tguserID)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		switch state {
+		// Производим запрос к Гос Услугам с помощью SearchMedAction() и
+		// выводим
+		case "SearchMed":
+			msg, newKeyboard, newText, err := SearchMedAct(message, conn, tguserID)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+
+			return msg, newKeyboard, newText, nil
+		case "":
+			////////////
+			//////////
+			////////
+		}
 	}
 	return nil, nil, nil, nil
 }
