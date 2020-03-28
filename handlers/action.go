@@ -2,8 +2,10 @@ package handlers
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/jmoiron/sqlx"
 	"github.com/qrlzvrn/seidhr/db"
 	"github.com/qrlzvrn/seidhr/keyboards"
+	"github.com/qrlzvrn/seidhr/med"
 )
 
 // Данная часть пакета содержит в себе функции выступающие посредниками между
@@ -94,4 +96,116 @@ func Default(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable,
 	newText = nil
 
 	return msg, newKeyboard, newText
+}
+
+// SearchMed - меняет состояние пользователя на "SearchMed" и
+// выдает конфиги сообщения, в котором пользователю предлагается
+// ввести название лекарства
+func SearchMed(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+
+	tguserID := callbackQuery.From.ID
+	err := db.ChangeUserState(conn, tguserID, "SearchMed")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	msg = nil
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.MedSearchKeyboard)
+	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Введите название лекарства:")
+
+	return msg, newKeyboard, newText, nil
+}
+
+// SearchMedAct - принимает название лекарства и отправлят запрос на получение информации о нем,
+// после возвращет конфиги сообщений
+func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+	medTitle := message.Text
+
+	// Проверяем наличие данного лекарства в базе данных льготных лекарств
+	isExist, err := db.CheckMed(conn, medTitle)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if isExist == false {
+		msg = tgbotapi.NewMessage(message.Chat.ID, "Простите, но кажется вы неправильно написали название, либо это лекарство не льготное. Попробуйте еще раз:")
+		newKeyboard = nil
+		newText = nil
+	}
+
+	// Отправляем запрос
+	medResp, err := med.ReqMedInfo(medTitle)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Находим id нашго лекарства
+	medicomentID, err := db.FindMedID(conn, medTitle)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Проверяем подписан ли пользователь на это лекарство, что бы решить
+	// какую клавиатуру и текст необходимо отобразить
+	isSubscribe, err := db.IsUserSubThisMed(conn, tguserID, medicomentID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if isSubscribe == true {
+		// Проверяем полученный json на наличе информации об ошибке.
+		// Так как перед отправкой запроса мы проверяем наличие лекарства в нашей бд,
+		// где хранится список лекарств доступных по льготе, то вариант с неправильным написанием
+		// или вводом чего-то вообще неподходящего или несуществующего
+		// Значит, ошибка всегда будет означать то, что лекарства сейчас нет в доступе
+		ok := med.IsErrExistInJSON(medResp)
+		if ok == false {
+			msgConf := tgbotapi.NewMessage(message.Chat.ID, "К сожалению данного лекарства сейчас нет ни в одной аптеке, но так как вы подписаны, мы уведомим вас, как только оно появится в аптеках")
+			msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
+
+			msg = msgConf
+			newKeyboard = nil
+			newText = nil
+
+			return msg, newKeyboard, newText, nil
+		}
+
+		// Парсим json и компануем текст сообщения
+		msgText := med.ParseJSON(medResp)
+
+		msgConf := tgbotapi.NewMessage(message.Chat.ID, msgText)
+		msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
+
+		msg = msgConf
+		newKeyboard = nil
+		newText = nil
+
+		return msg, newKeyboard, newText, nil
+
+	}
+
+	// Опять Проверяем полученный json на наличе информации об ошибке
+	ok := med.IsErrExistInJSON(medResp)
+	if ok == false {
+
+		msgConf := tgbotapi.NewMessage(message.Chat.ID, "К сожалению данного лекарства сейчас нет ни в одной аптеке, но если хотите, вы можете подписаться и мы уведомим вас, как только оно появится")
+		msgConf.ReplyMarkup = keyboards.ViewMedWithSubKeyboard
+
+		msg = msgConf
+		newKeyboard = nil
+		newText = nil
+		return msg, newKeyboard, newText, nil
+	}
+
+	// Парсим json и компануем текст сообщения
+	msgText := med.ParseJSON(medResp)
+
+	msgConf := tgbotapi.NewMessage(message.Chat.ID, msgText)
+	msgConf.ReplyMarkup = keyboards.ViewMedWithSubKeyboard
+
+	msg = msgConf
+	newKeyboard = nil
+	newText = nil
+
+	return msg, newKeyboard, newText, nil
 }
