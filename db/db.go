@@ -9,7 +9,7 @@ import (
 	"github.com/qrlzvrn/seidhr/config"
 )
 
-// ConnectToDB ...
+// ConnectToDB - подключается к базе данных и возвращаент конект
 func ConnectToDB() (*sqlx.DB, error) {
 	dbConf, err := config.NewDBConf()
 	if err != nil {
@@ -24,7 +24,7 @@ func ConnectToDB() (*sqlx.DB, error) {
 	}
 }
 
-// CreateUser ...
+// CreateUser - создает нового польователя
 func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	tx := db.MustBegin()
 	tx.MustExec("INSERT INTO tguser (id, chat_id) VALUES ($1, $2)", tguserID, chatID)
@@ -36,7 +36,7 @@ func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	return nil
 }
 
-// CheckUser ...
+// CheckUser - проверяет наличие пользователя в базе
 func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from tguser where id=$1)", tguserID).Scan(&isExist)
@@ -46,7 +46,7 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 	return isExist, nil
 }
 
-// CheckUserState ...
+// CheckUserState - проверяет состояние пользователя
 func CheckUserState(db *sqlx.DB, tguserID int) (string, error) {
 	var state string
 	err := db.QueryRow("SELECT exists (select 1 from tguser where id=$1)", tguserID).Scan(&state)
@@ -56,7 +56,7 @@ func CheckUserState(db *sqlx.DB, tguserID int) (string, error) {
 	return state, nil
 }
 
-// ChangeUserState ...
+// ChangeUserState - изменяет состояние пользователя
 func ChangeUserState(db *sqlx.DB, tguserID int, state string) error {
 	tx := db.MustBegin()
 	tx.MustExec("UPDATE tguser SET state=$1 where id=$2", state, tguserID)
@@ -67,7 +67,7 @@ func ChangeUserState(db *sqlx.DB, tguserID int, state string) error {
 	return nil
 }
 
-// InitMedList ...
+// InitMedList - инициализирует список льготных лекарств в базе данных
 func InitMedList(db sqlx.DB, medLines []string) error {
 	tx := db.MustBegin()
 
@@ -81,7 +81,7 @@ func InitMedList(db sqlx.DB, medLines []string) error {
 	return nil
 }
 
-// CheckMed ...
+// CheckMed - проверяет существует ли такое лекарство в нашей базе
 func CheckMed(db *sqlx.DB, medName string) (bool, error) {
 
 	var isExist bool
@@ -196,6 +196,7 @@ func FindChatID(db *sqlx.DB, tguserID int) (int, error) {
 	return chatID, nil
 }
 
+// FindMed - находит название лекарства по его id
 func FindMed(db *sqlx.DB, medicamentID int) (string, error) {
 	var medTitle string
 	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
@@ -205,6 +206,7 @@ func FindMed(db *sqlx.DB, medicamentID int) (string, error) {
 	return medTitle, nil
 }
 
+// CheckAvailability - проверяет наличие лекарства записаное в базе
 func CheckAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
 	var availible bool
 	err := db.QueryRow("SELECT availability FROM medicament WHERE id = $1", medicamentID).Scan(&availible)
@@ -214,6 +216,7 @@ func CheckAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
 	return availible, nil
 }
 
+// ChangeAvailability - изменяет наличие лекарства в базе
 func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 	tx := db.MustBegin()
 	tx.MustExec("UPDATE medicament SET availability = $1 WHERE id = $2", value, medicamentID)
