@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/qrlzvrn/seidhr/handlers"
 	"github.com/robfig/cron"
 )
 
@@ -51,13 +52,47 @@ func main() {
 		// в зависимости от типа полученного сообщения используем разные обработчики
 		for update := range updates {
 			if update.Message != nil {
-				//----------------
-				//-----------------
-				//------------------
+				msg, newKeyboard, newText, err := handlers.MessageHandler(update.Message)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if msg != nil {
+					if _, err := bot.Send(msg); err != nil {
+						log.Fatal(err)
+					}
+				}
+				if newKeyboard != nil {
+					if _, err := bot.Send(newKeyboard); err != nil {
+						log.Fatal(err)
+					}
+				}
+				if newText != nil {
+					if _, err := bot.Send(newText); err != nil {
+						log.Fatal(err)
+					}
+				}
+
 			} else if update.CallbackQuery != nil {
-				//----------------
-				//-----------------
-				//------------------
+				msg, newKeyboard, newText, err := handlers.CallbackHandler(update.CallbackQuery)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if msg != nil {
+					if _, err := bot.Send(msg); err != nil {
+						log.Fatal(err)
+					}
+				}
+				if newKeyboard != nil {
+					if _, err := bot.Send(newKeyboard); err != nil {
+						log.Fatal(err)
+					}
+				}
+				if newText != nil {
+					if _, err := bot.Send(newText); err != nil {
+						log.Fatal(err)
+					}
+				}
+
 			}
 		}
 	}
