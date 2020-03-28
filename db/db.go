@@ -49,7 +49,7 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 // CheckUserState - проверяет состояние пользователя
 func CheckUserState(db *sqlx.DB, tguserID int) (string, error) {
 	var state string
-	err := db.QueryRow("SELECT exists (select 1 from tguser where id=$1)", tguserID).Scan(&state)
+	err := db.QueryRow("SELECT state from tguser where id=$1)", tguserID).Scan(&state)
 	if err != nil {
 		return "", err
 	}
