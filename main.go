@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/qrlzvrn/seidhr/config"
 	"github.com/qrlzvrn/seidhr/handlers"
 	"github.com/robfig/cron"
 )
@@ -16,10 +17,15 @@ func runEverySecond() {
 }
 
 func main() {
-	// Заглушки для значений, которые позже будут получаться из конфига
-	var botAPIToken string
-	var fullchain string
-	var privkey string
+	botConfig, err := config.NewTgBotConf()
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	sslConfig, err := config.NewSSLConf()
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
 
 	// Используем cron для Go,
 	// дабы по росписанию проверять наличие лекарств,
@@ -31,7 +37,7 @@ func main() {
 	cronJob.AddFunc("* * * * * *", runEverySecond)
 
 	// Инициализируем бота
-	if bot, err := tgbotapi.NewBotAPI(botAPIToken); err != nil {
+	if bot, err := tgbotapi.NewBotAPI(botConfig.APIToken); err != nil {
 		log.Fatalf("%+v", err)
 	} else {
 		bot.Debug = true
@@ -46,7 +52,7 @@ func main() {
 		}
 		//Начинаем слушать на 8443 порту
 		updates := bot.ListenForWebhook("/" + bot.Token)
-		go http.ListenAndServeTLS(":8443", fullchain, privkey, nil)
+		go http.ListenAndServeTLS(":8443", sslConfig.Fullchain, sslConfig.Privkey, nil)
 
 		// Получаем обновления от телеграма,
 		// в зависимости от типа полученного сообщения используем разные обработчики
