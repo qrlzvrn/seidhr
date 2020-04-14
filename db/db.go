@@ -81,8 +81,8 @@ func InitMedList(db sqlx.DB, medLines []string) error {
 	return nil
 }
 
-// CheckMed - проверяет существует ли такое лекарство в нашей базе
-func CheckMed(db *sqlx.DB, medName string) (bool, error) {
+// IsMedExist - проверяет существует ли такое лекарство в нашей базе
+func IsMedExist(db *sqlx.DB, medName string) (bool, error) {
 
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from medicament where title % $1)", medName).Scan(&isExist)
@@ -114,9 +114,9 @@ func Unsubscribe(db *sqlx.DB, tguserID int, medicamentID int) error {
 	return nil
 }
 
-// ListSubscriptions - находит все подписки пользователя и возвращает [][]string, где
+// ListUserSubscriptions - находит все подписки пользователя и возвращает [][]string, где
 // [[id title] [id title] [id title]]
-func ListSubscriptions(db *sqlx.DB, tguserID int) ([][]string, error) {
+func ListUserSubscriptions(db *sqlx.DB, tguserID int) ([][]string, error) {
 	rows, err := db.Query("SELECT id, title from medicament INNER JOIN subscription on medicament.id=subscription.medicament_id WHERE subscription.tguser_id = $1", tguserID)
 	if err != nil {
 		return nil, err
@@ -135,9 +135,19 @@ func ListSubscriptions(db *sqlx.DB, tguserID int) ([][]string, error) {
 	return subscriptions, nil
 }
 
-// CheckSubscriptions - проверяет наличие у пользователя подписок на лекарства и,
+// IsUserSubThisMed - проверяет подписан ли пользователь на данное лекарство
+func IsUserSubToThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, error) {
+	var isExist bool
+	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1 AND medicament_id=$2)", tguserID, medicamentID).Scan(&isExist)
+	if err != nil {
+		return false, err
+	}
+	return isExist, nil
+}
+
+// IsUserHasSub - проверяет наличие у пользователя подписок на лекарства и,
 // если у него есть хоть одна подписка, возвращает true.
-func CheckSubscriptions(db *sqlx.DB, tguserID int) (bool, error) {
+func IsUserHasSub(db *sqlx.DB, tguserID int) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1)", tguserID).Scan(&isExist)
 	if err != nil {
@@ -146,9 +156,9 @@ func CheckSubscriptions(db *sqlx.DB, tguserID int) (bool, error) {
 	return isExist, nil
 }
 
-// FindSubMed - Находит все лекарства, на которые подписаны пользователи
+// FindAllSubscriptionsMed - Находит все лекарства, на которые подписаны пользователи
 // и возварщает слайс с их id
-func FindSubMed(db *sqlx.DB) ([]int, error) {
+func FindAllSubscriptionsMed(db *sqlx.DB) ([]int, error) {
 	rows, err := db.Query("SELECT DISTINCT medicament_id FROM subscription")
 	if err != nil {
 		return nil, err
@@ -166,9 +176,9 @@ func FindSubMed(db *sqlx.DB) ([]int, error) {
 	return subMeds, nil
 }
 
-// FindUsersWhoSub - находит пользователей подписанных на определенное лекарство,
+// FindWhoSubToMed - находит пользователей подписанных на определенное лекарство,
 // id которого принимается на вход, и возвращает слайс с id этих пользователей
-func FindUsersWhoSub(db *sqlx.DB, medicamentID int) ([]int, error) {
+func FindWhoSubToMed(db *sqlx.DB, medicamentID int) ([]int, error) {
 	rows, err := db.Query("SELECT tguser_id FROM subscription WHERE medicament_id = $1", medicamentID)
 	if err != nil {
 		return nil, err
@@ -196,16 +206,6 @@ func FindChatID(db *sqlx.DB, tguserID int) (int, error) {
 	return chatID, nil
 }
 
-// FindMed - находит название лекарства по его id
-func FindMed(db *sqlx.DB, medicamentID int) (string, error) {
-	var medTitle string
-	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
-	if err != nil {
-		return "", err
-	}
-	return medTitle, nil
-}
-
 // CheckAvailability - проверяет наличие лекарства записаное в базе
 func CheckAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
 	var availible bool
@@ -227,16 +227,6 @@ func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 	return nil
 }
 
-// IsUserSubThisMed - проверяет подписан ли пользователь на данное лекарство
-func IsUserSubThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, error) {
-	var isExist bool
-	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1 AND medicament_id=$2)", tguserID, medicamentID).Scan(&isExist)
-	if err != nil {
-		return false, err
-	}
-	return isExist, nil
-}
-
 // FindMedID - находит id необхомодимого лекартсва
 func FindMedID(db *sqlx.DB, medTitle string) (int, error) {
 	var medicamentID int
@@ -245,4 +235,14 @@ func FindMedID(db *sqlx.DB, medTitle string) (int, error) {
 		return 0, err
 	}
 	return medicamentID, nil
+}
+
+// FindMedTitle - находит название лекарства по его id
+func FindMedTitle(db *sqlx.DB, medicamentID int) (string, error) {
+	var medTitle string
+	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
+	if err != nil {
+		return "", err
+	}
+	return medTitle, nil
 }

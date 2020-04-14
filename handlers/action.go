@@ -51,7 +51,7 @@ func Start(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Chattable, t
 
 	// Если пользователь уже взаимодействовал с ботом,
 	// смотрим состояние его подписок
-	isSubscribe, err := db.CheckSubscriptions(conn, tguserID)
+	isSubscribe, err := db.IsUserHasSub(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -122,7 +122,7 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 	medTitle := message.Text
 
 	// Проверяем наличие данного лекарства в базе данных льготных лекарств
-	isExist, err := db.CheckMed(conn, medTitle)
+	isExist, err := db.IsMedExist(conn, medTitle)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -147,7 +147,7 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 
 	// Проверяем подписан ли пользователь на это лекарство, что бы решить
 	// какую клавиатуру и текст необходимо отобразить
-	isSubscribe, err := db.IsUserSubThisMed(conn, tguserID, medicomentID)
+	isSubscribe, err := db.IsUserSubToThisMed(conn, tguserID, medicomentID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
