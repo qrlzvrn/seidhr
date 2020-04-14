@@ -7,6 +7,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/jmoiron/sqlx"
+	"github.com/qrlzvrn/seidhr/db"
+	"github.com/qrlzvrn/seidhr/keyboards"
 )
 
 // Apothecary ...
@@ -127,4 +132,71 @@ func ParseJSON(j Jsn) string {
 	}
 
 	return msg
+}
+
+// CyclicMedSearch - Проверяет список подписок, после чего опрашивает Гос Услуги
+// на наличие эти лекарств в городе. Полученный результат сравнивается с
+// состоянием в базе данных. если значение Avaliability сменяется на true,
+// то пользователю отправляется уведомление.
+func CyclicMedSearch(conn *sqlx.DB, bot *tgbotapi.BotAPI) error {
+	medsID, err := db.FindAllSubscriptionsMed(conn)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range medsID {
+		title, err := db.FindMedTitle(conn, id)
+		if err != nil {
+			return err
+		}
+
+		medResp, err := ReqMedInfo(title)
+		if err != nil {
+			return err
+		}
+
+		isErr := IsErrExistInJSON(medResp)
+		if err != nil {
+			return err
+		}
+
+		availabillity, err := db.CheckAvailability(conn, id)
+		if err != nil {
+			return err
+		}
+
+		// Наличие ошибки говорит нам о том, что лекарства в данный момент нигде нет
+		// Значит, мы проверяем значение Availability в базе данных
+		if isErr == true && availabillity == true {
+			db.ChangeAvailability(conn, id, false)
+			// Ставим заметку о дате, когда лекарство закончилось в городе
+		}
+
+		if isErr == false && availabillity == false {
+			db.ChangeAvailability(conn, id, true)
+			// Теперь нужно уведомить всех пользователей,
+			// которые подписаны на данное лекарство
+			users, err := db.FindWhoSubToMed(conn, id)
+			if err != nil {
+				return err
+			}
+
+			for _, user := range users {
+				chatID, err := db.FindChatID(conn, user)
+				if err != nil {
+					return err
+				}
+
+				msgText := ParseJSON(medResp)
+
+				msgConf := tgbotapi.NewMessage(int64(chatID), msgText)
+				msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
+
+				if _, err := bot.Send(msgConf); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
