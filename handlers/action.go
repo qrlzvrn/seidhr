@@ -163,8 +163,8 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		// где хранится список лекарств доступных по льготе, то вариант с неправильным написанием
 		// или вводом чего-то вообще неподходящего или несуществующего
 		// Значит, ошибка всегда будет означать то, что лекарства сейчас нет в доступе
-		ok := med.IsErrExistInJSON(medResp)
-		if ok == false {
+		isErr := med.IsErrExistInJSON(medResp)
+		if isErr == true {
 			msgConf := tgbotapi.NewMessage(message.Chat.ID, "К сожалению данного лекарства сейчас нет ни в одной аптеке, но так как вы подписаны, мы уведомим вас, как только оно появится в аптеках")
 			msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
 

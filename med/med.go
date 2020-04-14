@@ -80,9 +80,9 @@ func ReqMedInfo(medTitle string) (Jsn, error) {
 // IsErrExistInJSON - Проверяет json структуру на наличие ошибок
 func IsErrExistInJSON(j Jsn) bool {
 	if u := j.Errors; u != "" {
-		return false
+		return true
 	}
-	return true
+	return false
 }
 
 // ParseJSON - парсит json структуру и возвращает готовый текст сообщения для пользователя
