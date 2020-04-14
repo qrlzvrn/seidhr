@@ -127,6 +127,11 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		return nil, nil, nil, err
 	}
 
+	trueName, err := db.FindTrueMedName(conn, medTitle)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	if isExist == false {
 		msg = tgbotapi.NewMessage(message.Chat.ID, "Простите, но кажется вы неправильно написали название, либо это лекарство не льготное. Попробуйте еще раз:")
 		newKeyboard = nil
@@ -134,13 +139,13 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 	}
 
 	// Отправляем запрос
-	medResp, err := med.ReqMedInfo(medTitle)
+	medResp, err := med.ReqMedInfo(trueName)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	// Находим id нашго лекарства
-	medicomentID, err := db.FindMedID(conn, medTitle)
+	medicomentID, err := db.FindMedID(conn, trueName)
 	if err != nil {
 		return nil, nil, nil, err
 	}
