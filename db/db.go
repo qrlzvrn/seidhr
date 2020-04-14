@@ -92,6 +92,23 @@ func IsMedExist(db *sqlx.DB, medName string) (bool, error) {
 	return isExist, nil
 }
 
+// FindTrueMedName - выводит правильное название лекарства, если пользователь
+// ввел название с опечатками.
+//
+// Данная функция используется в связке с IsMedExist.
+//
+//IsMedExist - проверяет существования лекарства, а данная функция
+// выдает правильное название, для дальнешей работы с Гос. Услугами
+func FindTrueMedName(db *sqlx.DB, medName string) (string, error) {
+
+	var trueName string
+	err := db.QueryRow("SELECT title FROM medicament WHERE title % $1", medName).Scan(&trueName)
+	if err != nil {
+		return "", err
+	}
+	return trueName, nil
+}
+
 // Subscribe - создает новую подписку пользователя на лекарство
 func Subscribe(db sqlx.DB, tguserID int, medicamentID int) error {
 	tx := db.MustBegin()
@@ -135,7 +152,7 @@ func ListUserSubscriptions(db *sqlx.DB, tguserID int) ([][]string, error) {
 	return subscriptions, nil
 }
 
-// IsUserSubThisMed - проверяет подписан ли пользователь на данное лекарство
+// IsUserSubToThisMed - проверяет подписан ли пользователь на данное лекарство
 func IsUserSubToThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1 AND medicament_id=$2)", tguserID, medicamentID).Scan(&isExist)
