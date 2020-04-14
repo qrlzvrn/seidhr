@@ -190,8 +190,8 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 	}
 
 	// Опять Проверяем полученный json на наличе информации об ошибке
-	ok := med.IsErrExistInJSON(medResp)
-	if ok == false {
+	isErr := med.IsErrExistInJSON(medResp)
+	if isErr == true {
 
 		msgConf := tgbotapi.NewMessage(message.Chat.ID, "К сожалению данного лекарства сейчас нет ни в одной аптеке, но если хотите, вы можете подписаться и мы уведомим вас, как только оно появится")
 		msgConf.ReplyMarkup = keyboards.ViewMedWithSubKeyboard
