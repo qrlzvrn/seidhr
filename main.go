@@ -1,19 +1,28 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/qrlzvrn/seidhr/config"
 	"github.com/qrlzvrn/seidhr/handlers"
-	"github.com/robfig/cron"
+	"github.com/qrlzvrn/seidhr/med"
 )
 
-//Функция заглушка
-func runEverySecond() {
-	fmt.Println("----")
+// checkTime - следит за временем и в момент, когда время становится равным 11 часам пишет в канал
+// Который будет считан функцией CyclicMedSearch, после чего она будет запущена.
+func checkTime(c chan bool) {
+	for {
+		hour := time.Now().Hour()
+
+		if hour == 11 {
+			c <- true
+			time.Sleep(23 * time.Hour)
+		}
+		time.Sleep(20 * time.Minute)
+	}
 }
 
 func main() {
@@ -26,15 +35,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
-
-	// Используем cron для Go,
-	// дабы по росписанию проверять наличие лекарств,
-	// в случае, если лекарства появились, отправляем подписаным пользователям сообщения
-	// -----------
-	// Пока что используем runEverySecond как заглушку
-	cronJob := cron.New()
-	cronJob.Start()
-	cronJob.AddFunc("* * * * * *", runEverySecond)
 
 	// Инициализируем бота
 	if bot, err := tgbotapi.NewBotAPI(botConfig.APIToken); err != nil {
@@ -50,6 +50,15 @@ func main() {
 		if info.LastErrorDate != 0 {
 			log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
 		}
+
+		// Создаем канал необходимый для работы функций отвечающих за ежедневную проверку
+		// наличия лекарств в аптеке.
+
+		c := make(chan bool)
+
+		go checkTime(c)
+		go med.CyclicMedSearch(bot, c)
+
 		//Начинаем слушать на 8443 порту
 		updates := bot.ListenForWebhook("/" + bot.Token)
 		go http.ListenAndServeTLS(":8443", sslConfig.Fullchain, sslConfig.Privkey, nil)
@@ -102,5 +111,4 @@ func main() {
 			}
 		}
 	}
-	cronJob.Stop()
 }
