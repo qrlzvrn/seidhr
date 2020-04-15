@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/jmoiron/sqlx"
 	"github.com/qrlzvrn/seidhr/db"
 	"github.com/qrlzvrn/seidhr/keyboards"
 )
@@ -138,31 +138,37 @@ func ParseJSON(j Jsn) string {
 // на наличие эти лекарств в городе. Полученный результат сравнивается с
 // состоянием в базе данных. если значение Avaliability сменяется на true,
 // то пользователю отправляется уведомление.
-func CyclicMedSearch(conn *sqlx.DB, bot *tgbotapi.BotAPI) error {
+func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
+
+	conn, err := db.ConnectToDB()
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
 	medsID, err := db.FindAllSubscriptionsMed(conn)
 	if err != nil {
-		return err
+		log.Fatalf("%+v", err)
 	}
 
 	for _, id := range medsID {
 		title, err := db.FindMedTitle(conn, id)
 		if err != nil {
-			return err
+			log.Fatalf("%+v", err)
 		}
 
 		medResp, err := ReqMedInfo(title)
 		if err != nil {
-			return err
+			log.Fatalf("%+v", err)
 		}
 
 		isErr := IsErrExistInJSON(medResp)
 		if err != nil {
-			return err
+			log.Fatalf("%+v", err)
 		}
 
 		availabillity, err := db.CheckAvailability(conn, id)
 		if err != nil {
-			return err
+			log.Fatalf("%+v", err)
 		}
 
 		// Наличие ошибки говорит нам о том, что лекарства в данный момент нигде нет
@@ -178,13 +184,13 @@ func CyclicMedSearch(conn *sqlx.DB, bot *tgbotapi.BotAPI) error {
 			// которые подписаны на данное лекарство
 			users, err := db.FindWhoSubToMed(conn, id)
 			if err != nil {
-				return err
+				log.Fatalf("%+v", err)
 			}
 
 			for _, user := range users {
 				chatID, err := db.FindChatID(conn, user)
 				if err != nil {
-					return err
+					log.Fatalf("%+v", err)
 				}
 
 				msgText := ParseJSON(medResp)
@@ -193,10 +199,9 @@ func CyclicMedSearch(conn *sqlx.DB, bot *tgbotapi.BotAPI) error {
 				msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
 
 				if _, err := bot.Send(msgConf); err != nil {
-					return err
+					log.Fatalf("%+v", err)
 				}
 			}
 		}
 	}
-	return nil
 }
