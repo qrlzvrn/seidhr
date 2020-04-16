@@ -1,7 +1,8 @@
 package config
 
 import (
-	"github.com/kelseyhightower/envconfig"
+	"os"
+	"strconv"
 )
 
 // Используя библиотеку envconfig считываем в структуры необходимые данные из переменных окружения.
@@ -32,36 +33,36 @@ type SSL struct {
 // NewDBConf - генерирует новый конфиг для работы с базой данных
 func NewDBConf() (DB, error) {
 	db := DB{}
-
-	err := envconfig.Process("db", &db)
+	// Приводим portк int, так как из .env считываются строки
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
 	if err != nil {
 		return db, err
 	}
+	db.Port = port
+
+	db.Host = os.Getenv("DB_HOST")
+	db.Username = os.Getenv("DB_USERNAME")
+	db.Password = os.Getenv("DB_PASSWORD")
+	db.Name = os.Getenv("DB_NAME")
 
 	return db, nil
 }
 
 // NewTgBotConf - генерирует новый конфиг с информацией о телеграм боте
-func NewTgBotConf() (TgBot, error) {
+func NewTgBotConf() TgBot {
 	tgBot := TgBot{}
 
-	err := envconfig.Process("telegram", &tgBot)
-	if err != nil {
-		return tgBot, err
-	}
+	tgBot.APIToken = os.Getenv("TELEGRAM_APITOKEN")
 
-	return tgBot, nil
+	return tgBot
 }
 
 // NewSSLConf - генерирует новый конфиг с информацией о SSL
-func NewSSLConf() (SSL, error) {
+func NewSSLConf() SSL {
 	ssl := SSL{}
 
-	err := envconfig.Process("ssl", &ssl)
-	if err != nil {
+	ssl.Fullchain = os.Getenv("FULLCHAIN")
+	ssl.Privkey = os.Getenv("PRIVKEY")
 
-		return ssl, err
-	}
-
-	return ssl, nil
+	return ssl
 }
