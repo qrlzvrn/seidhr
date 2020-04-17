@@ -6,7 +6,6 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/joho/godotenv"
 	"github.com/qrlzvrn/seidhr/config"
 	"github.com/qrlzvrn/seidhr/handlers"
 	"github.com/qrlzvrn/seidhr/med"
@@ -27,18 +26,13 @@ func checkTime(c chan bool) {
 }
 
 func main() {
-
-	err := godotenv.Load()
+	conf, err := config.InitConf()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(err)
 	}
 
-	botConfig := config.NewTgBotConf()
-
-	sslConfig := config.NewSSLConf()
-
 	// Инициализируем бота
-	if bot, err := tgbotapi.NewBotAPI(botConfig.APIToken); err != nil {
+	if bot, err := tgbotapi.NewBotAPI(conf.TgBot.APIToken); err != nil {
 		log.Fatalf("%+v", err)
 	} else {
 		bot.Debug = true
@@ -62,7 +56,7 @@ func main() {
 
 		//Начинаем слушать на 8443 порту
 		updates := bot.ListenForWebhook("/" + bot.Token)
-		go http.ListenAndServeTLS(":8443", sslConfig.Fullchain, sslConfig.Privkey, nil)
+		go http.ListenAndServeTLS(":8443", conf.SSL.Fullchain, conf.SSL.Privkey, nil)
 
 		// Получаем обновления от телеграма,
 		// в зависимости от типа полученного сообщения используем разные обработчики

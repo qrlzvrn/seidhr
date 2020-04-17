@@ -11,11 +11,17 @@ import (
 
 // ConnectToDB - подключается к базе данных и возвращаент конект
 func ConnectToDB() (*sqlx.DB, error) {
-	dbConf, err := config.NewDBConf()
+	conf, err := config.InitConf()
 	if err != nil {
 		return nil, err
 	}
-	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbConf.Host, dbConf.Port, dbConf.Username, dbConf.Password, dbConf.Name)
+
+	port, err := strconv.Atoi(conf.DB.Port)
+	if err != nil {
+		return nil, err
+	}
+
+	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.DB.Host, port, conf.DB.Username, conf.DB.Password, conf.DB.Name)
 
 	if db, err := sqlx.Connect("postgres", dbInfo); err != nil {
 		return nil, err
