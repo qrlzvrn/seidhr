@@ -269,3 +269,15 @@ func FindMedTitle(db *sqlx.DB, medicamentID int) (string, error) {
 	}
 	return medTitle, nil
 }
+
+// AreTheAnySubscriptions - проверяет существование хотя бы одной подписки
+// Служит для того, что бы избежать ошибок в функции CyclicMedSearch
+func AreTheAnySubscriptions(db *sqlx.DB) (bool, error) {
+	var isExist bool
+	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription )").Scan(&isExist)
+	if err != nil {
+		return false, err
+	}
+
+	return isExist, nil
+}

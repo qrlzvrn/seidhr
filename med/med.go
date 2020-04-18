@@ -145,61 +145,71 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 		log.Fatalf("%+v", err)
 	}
 
-	medsID, err := db.FindAllSubscriptionsMed(conn)
+	// Проверяем наличе хотя бы одной подписки, дабы избежать ошибок, связанных
+	// с попыткой чтения не существующей информации
+	anySub, err := db.AreTheAnySubscriptions(conn)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
 
-	for _, id := range medsID {
-		title, err := db.FindMedTitle(conn, id)
+	if anySub == true {
+
+		medsID, err := db.FindAllSubscriptionsMed(conn)
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
 
-		medResp, err := ReqMedInfo(title)
-		if err != nil {
-			log.Fatalf("%+v", err)
-		}
-
-		isErr := IsErrExistInJSON(medResp)
-		if err != nil {
-			log.Fatalf("%+v", err)
-		}
-
-		availabillity, err := db.CheckAvailability(conn, id)
-		if err != nil {
-			log.Fatalf("%+v", err)
-		}
-
-		// Наличие ошибки говорит нам о том, что лекарства в данный момент нигде нет
-		// Значит, мы проверяем значение Availability в базе данных
-		if isErr == true && availabillity == true {
-			db.ChangeAvailability(conn, id, false)
-			// Ставим заметку о дате, когда лекарство закончилось в городе
-		}
-
-		if isErr == false && availabillity == false {
-			db.ChangeAvailability(conn, id, true)
-			// Теперь нужно уведомить всех пользователей,
-			// которые подписаны на данное лекарство
-			users, err := db.FindWhoSubToMed(conn, id)
+		for _, id := range medsID {
+			title, err := db.FindMedTitle(conn, id)
 			if err != nil {
 				log.Fatalf("%+v", err)
 			}
 
-			for _, user := range users {
-				chatID, err := db.FindChatID(conn, user)
+			medResp, err := ReqMedInfo(title)
+			if err != nil {
+				log.Fatalf("%+v", err)
+			}
+
+			isErr := IsErrExistInJSON(medResp)
+			if err != nil {
+				log.Fatalf("%+v", err)
+			}
+
+			availabillity, err := db.CheckAvailability(conn, id)
+			if err != nil {
+				log.Fatalf("%+v", err)
+			}
+
+			// Наличие ошибки говорит нам о том, что лекарства в данный момент нигде нет
+			// Значит, мы проверяем значение Availability в базе данных
+			if isErr == true && availabillity == true {
+				db.ChangeAvailability(conn, id, false)
+				// Ставим заметку о дате, когда лекарство закончилось в городе
+			}
+
+			if isErr == false && availabillity == false {
+				db.ChangeAvailability(conn, id, true)
+				// Теперь нужно уведомить всех пользователей,
+				// которые подписаны на данное лекарство
+				users, err := db.FindWhoSubToMed(conn, id)
 				if err != nil {
 					log.Fatalf("%+v", err)
 				}
 
-				msgText := ParseJSON(medResp)
+				for _, user := range users {
+					chatID, err := db.FindChatID(conn, user)
+					if err != nil {
+						log.Fatalf("%+v", err)
+					}
 
-				msgConf := tgbotapi.NewMessage(int64(chatID), msgText)
-				msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
+					msgText := ParseJSON(medResp)
 
-				if _, err := bot.Send(msgConf); err != nil {
-					log.Fatalf("%+v", err)
+					msgConf := tgbotapi.NewMessage(int64(chatID), msgText)
+					msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
+
+					if _, err := bot.Send(msgConf); err != nil {
+						log.Fatalf("%+v", err)
+					}
 				}
 			}
 		}
