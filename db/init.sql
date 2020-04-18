@@ -1,6 +1,8 @@
+CREATE EXTENSION pg_trgm;
+
 CREATE TABLE medicament (
     id INTEGER PRIMARY KEY,
-    title VARCHAR(30)
+    title VARCHAR(30),
     availability BOOLEAN
 );
 
@@ -12,6 +14,6 @@ CREATE TABLE tguser (
 );
 
 CREATE TABLE subscription (
-    medicament_id INTEGER REFERENCES medicament(id);
+    medicament_id INTEGER REFERENCES medicament(id),
     tguser_id INTEGER REFERENCES tguser(id)
 );
