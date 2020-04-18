@@ -10,6 +10,7 @@ services:
       - 8443:8443
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
+      - ./config.toml:/config.toml
     depends_on:
       - db
   db:
@@ -23,4 +24,4 @@ services:
     env_file:
       ./.env/db.env
     environment:
-     - PGDATA=/var/lib/postgresql/data/clozapinum
+     - PGDATA=/var/lib/postgresql/data/seidhr
