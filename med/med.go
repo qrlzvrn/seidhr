@@ -1,12 +1,14 @@
 package med
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -214,4 +216,21 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 			}
 		}
 	}
+}
+
+// ReadFileWithMeds - считывает данные из файла drugs.txt и подготавливает их для
+// передачи в функцию InitMedList, котрая заполнит ими базу данных
+func ReadFileWithMeds() ([]string, error) {
+	file, err := os.Open("drugs.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, nil
 }
