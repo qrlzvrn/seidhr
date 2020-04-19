@@ -214,3 +214,34 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 
 	return msg, newKeyboard, newText, nil
 }
+
+// BackToHome - возвращает пользователя на домашнюю страницу
+func BackToHome(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+
+	tguserID := callbackQuery.From.ID
+
+	isSubscribe, err := db.IsUserHasSub(conn, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Если у пользователя нет подписок, то выдаем ему клавиатуру
+	// без кнопки просмотра подписок
+	if isSubscribe == false {
+		msg = nil
+
+		newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeKeyboard)
+
+		newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Что бы вы хотели?")
+
+		return msg, newKeyboard, newText, nil
+	}
+
+	msg = nil
+
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeKeyboard)
+
+	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Что бы вы хотели?")
+
+	return msg, newKeyboard, newText, nil
+}

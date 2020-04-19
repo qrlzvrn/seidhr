@@ -34,7 +34,13 @@ func CallbackHandler(callbackQuery *tgbotapi.CallbackQuery) (tgbotapi.Chattable,
 		}
 
 		return msg, newKeyboard, newText, nil
-	case "":
+	case "backToHome":
+		msg, newKeyboard, newText, err := BackToHome(callbackQuery, conn)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		return msg, newKeyboard, newText, nil
 	}
-	return nil, nil, nil, nil
+	return msg, newKeyboard, newText, nil
 }
