@@ -27,7 +27,7 @@ func CallbackHandler(callbackQuery *tgbotapi.CallbackQuery) (tgbotapi.Chattable,
 	//Перехватываем нажатие на кнопку <Проверить лекарство> и
 	// с помощью SearchMed() меняем state пользователя на "SearchMed"
 	// и предлагаем ввести название лекарства
-	case "SearchMed":
+	case "searchMed":
 		msg, newKeyboard, newText, err := SearchMed(callbackQuery, conn)
 		if err != nil {
 			return nil, nil, nil, err
