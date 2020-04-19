@@ -33,7 +33,7 @@ func ConnectToDB() (*sqlx.DB, error) {
 // CreateUser - создает нового польователя
 func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	tx := db.MustBegin()
-	tx.MustExec("INSERT INTO tguser (id, chat_id, state, selectde_med) VALUES ($1, $2, $3, $4)", tguserID, chatID, "born", "nothing")
+	tx.MustExec("INSERT INTO tguser (id, chat_id, state, selected_med) VALUES ($1, $2, $3, $4)", tguserID, chatID, "born", "nothing")
 	err := tx.Commit()
 	if err != nil {
 		return err
