@@ -204,7 +204,7 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 						log.Fatalf("%+v", err)
 					}
 
-					msgText := ParseJSON(medResp)
+					msgText := "Ура! Ваше лекарство появилось в аптеках!\n\n" + ParseJSON(medResp)
 
 					msgConf := tgbotapi.NewMessage(int64(chatID), msgText)
 					msgConf.ReplyMarkup = keyboards.ViewMedKeyboard
