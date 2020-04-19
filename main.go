@@ -7,6 +7,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/qrlzvrn/seidhr/config"
+	"github.com/qrlzvrn/seidhr/db"
 	"github.com/qrlzvrn/seidhr/handlers"
 	"github.com/qrlzvrn/seidhr/med"
 )
@@ -26,6 +27,32 @@ func checkTime(c chan bool) {
 }
 
 func main() {
+
+	conn, err := db.ConnectToDB()
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	// Проверяем заполнена ли наша база значениями полученными из файла drugs.txt
+	// если нет, то заполняем.
+
+	isExist, err := db.IsMedListExist(conn)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	if isExist == false {
+
+		meds, err := med.ReadFileWithMeds()
+		if err != nil {
+			log.Fatalf("%+v", err)
+		}
+
+		err = db.InitMedList(conn, meds)
+		if err != nil {
+			log.Fatalf("%+v", err)
+		}
+	}
+
 	conf, err := config.InitConf()
 	if err != nil {
 		log.Fatal(err)
