@@ -119,17 +119,16 @@ func main() {
 						log.Fatal(err)
 					}
 				}
-				if newKeyboard != nil {
-					if _, err := bot.Send(newKeyboard); err != nil {
-						log.Fatal(err)
-					}
-				}
 				if newText != nil {
 					if _, err := bot.Send(newText); err != nil {
 						log.Fatal(err)
 					}
 				}
-
+				if newKeyboard != nil {
+					if _, err := bot.Send(newKeyboard); err != nil {
+						log.Fatal(err)
+					}
+				}
 			}
 		}
 	}
