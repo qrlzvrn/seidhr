@@ -264,7 +264,7 @@ func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 // FindMedID - находит id необхомодимого лекартсва
 func FindMedID(db *sqlx.DB, medTitle string) (int, error) {
 	var medicamentID int
-	err := db.QueryRow("SELECT title FROM medicament WHERE title = $1", medTitle).Scan(&medicamentID)
+	err := db.QueryRow("SELECT id FROM medicament WHERE title = $1", medTitle).Scan(&medicamentID)
 	if err != nil {
 		return 0, err
 	}
