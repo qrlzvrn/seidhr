@@ -33,7 +33,7 @@ func ConnectToDB() (*sqlx.DB, error) {
 // CreateUser - создает нового польователя
 func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	tx := db.MustBegin()
-	tx.MustExec("INSERT INTO tguser (id, chat_id) VALUES ($1, $2)", tguserID, chatID)
+	tx.MustExec("INSERT INTO tguser (id, chat_id, state, selectde_med) VALUES ($1, $2, $3, $4)", tguserID, chatID, "born", "nothing")
 	err := tx.Commit()
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 // CheckUserState - проверяет состояние пользователя
 func CheckUserState(db *sqlx.DB, tguserID int) (string, error) {
 	var state string
-	err := db.QueryRow("SELECT state from tguser where id=$1)", tguserID).Scan(&state)
+	err := db.QueryRow("SELECT state from tguser where id=$1", tguserID).Scan(&state)
 	if err != nil {
 		return "", err
 	}
@@ -74,7 +74,7 @@ func ChangeUserState(db *sqlx.DB, tguserID int, state string) error {
 }
 
 // InitMedList - инициализирует список льготных лекарств в базе данных
-func InitMedList(db sqlx.DB, medLines []string) error {
+func InitMedList(db *sqlx.DB, medLines []string) error {
 	tx := db.MustBegin()
 
 	for _, med := range medLines {
@@ -85,6 +85,17 @@ func InitMedList(db sqlx.DB, medLines []string) error {
 		return err
 	}
 	return nil
+}
+
+// IsMedListExist - проверяет заполнена ли таблица medicament.
+// Служит для того что бы не пытаться каждый раз заполнять бд значениями из файла drugs.txt
+func IsMedListExist(db *sqlx.DB) (bool, error) {
+	var isExist bool
+	err := db.QueryRow("SELECT exists (select 1 from medicament)").Scan(&isExist)
+	if err != nil {
+		return false, err
+	}
+	return isExist, nil
 }
 
 // IsMedExist - проверяет существует ли такое лекарство в нашей базе
