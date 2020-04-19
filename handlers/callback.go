@@ -41,6 +41,13 @@ func CallbackHandler(callbackQuery *tgbotapi.CallbackQuery) (tgbotapi.Chattable,
 			return nil, nil, nil, err
 		}
 		return msg, newKeyboard, newText, nil
+
+	case "subscribe":
+		msg, newKeyboard, newText, err := Subscribe(callbackQuery, conn)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		return msg, newKeyboard, newText, nil
 	}
 	return msg, newKeyboard, newText, nil
 }
