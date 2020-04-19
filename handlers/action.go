@@ -225,6 +225,7 @@ func BackToHome(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.
 		return nil, nil, nil, err
 	}
 
+	db.ChangeUserState(conn, tguserID, "home")
 	// Если у пользователя нет подписок, то выдаем ему клавиатуру
 	// без кнопки просмотра подписок
 	if isSubscribe == false {
