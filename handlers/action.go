@@ -239,7 +239,7 @@ func BackToHome(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.
 
 	msg = nil
 
-	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeKeyboard)
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeWithSubKeyboard)
 
 	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Что бы вы хотели?")
 
