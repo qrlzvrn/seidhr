@@ -1,8 +1,8 @@
 CREATE EXTENSION pg_trgm;
 
 CREATE TABLE medicament (
-    id INTEGER PRIMARY KEY,
-    title VARCHAR(30),
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(128),
     availability BOOLEAN
 );
 
