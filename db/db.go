@@ -127,7 +127,7 @@ func FindTrueMedName(db *sqlx.DB, medName string) (string, error) {
 }
 
 // Subscribe - создает новую подписку пользователя на лекарство
-func Subscribe(db sqlx.DB, tguserID int, medicamentID int) error {
+func Subscribe(db *sqlx.DB, tguserID int, medicamentID int) error {
 	tx := db.MustBegin()
 	tx.MustExec("INSERT INTO subscription (tguser_id, medicament_id) VALUES ($1, $2)", tguserID, medicamentID)
 	err := tx.Commit()
@@ -291,4 +291,14 @@ func AreTheAnySubscriptions(db *sqlx.DB) (bool, error) {
 	}
 
 	return isExist, nil
+}
+
+// CheckSelectedMed - получает название лекарства выбранного пользователем в данный момент
+func CheckSelectedMed(db *sqlx.DB, tguserID int) (string, error) {
+	var medTitle string
+	err := db.QueryRow("SELECT selected_med FROM tguser WHERE id = $1").Scan(&medTitle)
+	if err != nil {
+		return "", err
+	}
+	return medTitle, nil
 }
