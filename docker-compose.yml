@@ -11,6 +11,7 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - ./config.toml:/config.toml
+      - ./drugs.txt:/drugs.txt
     depends_on:
       - db
   db:
