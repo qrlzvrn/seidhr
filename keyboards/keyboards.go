@@ -8,7 +8,7 @@ import (
 // у которых еще нет ни одной подписки
 var HomeKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Проверить лекарство", "checkMed"),
+		tgbotapi.NewInlineKeyboardButtonData("Проверить лекарство", "searchMed"),
 	),
 )
 
@@ -16,7 +16,7 @@ var HomeKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 // с возможностью просмотра подписок
 var HomeWithSubKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Проверить лекарство", "checkMed"),
+		tgbotapi.NewInlineKeyboardButtonData("Проверить лекарство", "searchMed"),
 	),
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("Подписки", "lsSub"),
