@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strconv"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jmoiron/sqlx"
 	"github.com/qrlzvrn/seidhr/db"
@@ -325,6 +327,52 @@ func ListSubscriptions(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tg
 	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, subKeyboard)
 
 	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Ваши подписки:")
+
+	return msg, newKeyboard, newText, nil
+}
+
+// InterceptMedicament - перехватывает id лекарств
+func InterceptMedicament(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+
+	tguserID := callbackQuery.From.ID
+
+	db.ChangeUserState(conn, tguserID, "ViewSubMed")
+	medicamentID, err := strconv.Atoi(callbackQuery.Data)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	title, err := db.FindMedTitle(conn, medicamentID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Отправляем запрос
+	medResp, err := med.ReqMedInfo(title)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	isErr := med.IsErrExistInJSON(medResp)
+	if isErr == true {
+
+		msg = nil
+
+		newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.ViewMedKeyboard)
+
+		newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "К сожалению данного лекарства сейчас нет ни в одной аптеке, но так как вы подписаны, мы уведомим вас, как только оно появится в аптеках")
+
+		return msg, newKeyboard, newText, nil
+	}
+
+	// Парсим json и компануем текст сообщения
+	msgText := med.ParseJSON(medResp)
+
+	msg = nil
+
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.ViewMedKeyboard)
+
+	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, msgText)
 
 	return msg, newKeyboard, newText, nil
 }

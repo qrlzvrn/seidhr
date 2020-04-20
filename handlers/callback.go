@@ -62,6 +62,14 @@ func CallbackHandler(callbackQuery *tgbotapi.CallbackQuery) (tgbotapi.Chattable,
 			return nil, nil, nil, err
 		}
 		return msg, newKeyboard, newText, nil
+
+	// В default обрабатываются нажатия на кнопки с лекарствами, которые
+	// предлагаются пользователю при просмотре подписок.
+	default:
+		msg, newKeyboard, newText, err := InterceptMedicament(callbackQuery, conn)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		return msg, newKeyboard, newText, nil
 	}
-	return msg, newKeyboard, newText, nil
 }
