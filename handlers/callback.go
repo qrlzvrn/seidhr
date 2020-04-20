@@ -49,7 +49,7 @@ func CallbackHandler(callbackQuery *tgbotapi.CallbackQuery) (tgbotapi.Chattable,
 		}
 		return msg, newKeyboard, newText, nil
 
-	case "usnubscribe":
+	case "unsubscribe":
 		msg, newKeyboard, newText, err := Unsubscribe(callbackQuery, conn)
 		if err != nil {
 			return nil, nil, nil, err
