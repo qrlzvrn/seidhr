@@ -313,13 +313,28 @@ func Unsubscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi
 
 	db.ChangeUserState(conn, tguserID, "home")
 
+	isSub, err := db.IsUserHasSub(conn, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if isSub == true {
+		msg = nil
+		newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeWithSubKeyboard)
+
+		newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Поздравляю, подписка отменена.\n\nХотите еще что-нибудь?")
+
+		return msg, newKeyboard, newText, nil
+	}
+
 	msg = nil
 
-	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeWithSubKeyboard)
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeKeyboard)
 
 	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Поздравляю, подписка отменена.\n\nХотите еще что-нибудь?")
 
 	return msg, newKeyboard, newText, nil
+
 }
 
 // ListSubscriptions - отправляет пользователю сообщение с информацией о всех его подписках
