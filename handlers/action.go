@@ -147,14 +147,14 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 	}
 
 	// Находим id нашго лекарства
-	medicomentID, err := db.FindMedID(conn, trueName)
+	medicamentID, err := db.FindMedID(conn, trueName)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	// Проверяем подписан ли пользователь на это лекарство, что бы решить
 	// какую клавиатуру и текст необходимо отобразить
-	isSubscribe, err := db.IsUserSubToThisMed(conn, tguserID, medicomentID)
+	isSubscribe, err := db.IsUserSubToThisMed(conn, tguserID, medicamentID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -270,12 +270,7 @@ func Subscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.C
 
 	tguserID := callbackQuery.From.ID
 
-	medTitle, err := db.CheckSelectedMed(conn, tguserID)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	medicamentID, err := db.FindMedID(conn, medTitle)
+	medicamentID, err := db.CheckSelectedMed(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -301,12 +296,7 @@ func Unsubscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi
 
 	tguserID := callbackQuery.From.ID
 
-	medTitle, err := db.CheckSelectedMed(conn, tguserID)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	medicamentID, err := db.FindMedID(conn, medTitle)
+	medicamentID, err := db.CheckSelectedMed(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
