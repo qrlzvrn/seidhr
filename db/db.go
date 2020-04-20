@@ -293,12 +293,12 @@ func AreTheAnySubscriptions(db *sqlx.DB) (bool, error) {
 	return isExist, nil
 }
 
-// CheckSelectedMed - получает название лекарства выбранного пользователем в данный момент
-func CheckSelectedMed(db *sqlx.DB, tguserID int) (string, error) {
-	var medTitle string
-	err := db.QueryRow("SELECT selected_med FROM tguser WHERE id = $1").Scan(&medTitle)
+// CheckSelectedMed - получает id лекарства выбранного пользователем в данный момент
+func CheckSelectedMed(db *sqlx.DB, tguserID int) (int, error) {
+	var medicamentID int
+	err := db.QueryRow("SELECT selected_med FROM tguser WHERE id = $1", tguserID).Scan(&medicamentID)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return medTitle, nil
+	return medicamentID, nil
 }
