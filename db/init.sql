@@ -10,7 +10,7 @@ CREATE TABLE tguser (
     id INTEGER PRIMARY KEY,
     chat_id INTEGER,
     state VARCHAR(30),
-    selected_med VARCHAR(30)
+    selected_med INTEGER
 );
 
 CREATE TABLE subscription (
