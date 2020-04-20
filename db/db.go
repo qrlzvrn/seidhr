@@ -78,7 +78,7 @@ func InitMedList(db *sqlx.DB, medLines []string) error {
 	tx := db.MustBegin()
 
 	for _, med := range medLines {
-		tx.MustExec("INSERT INTO medicament (title) VALUES ($1)", med)
+		tx.MustExec("INSERT INTO medicament (title, availability) VALUES ($1, $2)", med, false)
 	}
 	err := tx.Commit()
 	if err != nil {
