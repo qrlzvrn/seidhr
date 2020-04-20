@@ -227,6 +227,22 @@ func BackToHome(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.
 		return nil, nil, nil, err
 	}
 
+	state, err := db.CheckUserState(conn, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Если пользователь просматривал подписки, нажал на лекарство и потом нажал кнопку <backToHome>,
+	// то обрабатываем другим способом и выводим ему все его подписки, вместо домашней страницы
+	if state == "ViewSubMed" {
+		db.ChangeUserState(conn, tguserID, "home")
+		msg, newKeyboard, newText, err := ListSubscriptions(callbackQuery, conn)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		return msg, newKeyboard, newText, nil
+	}
+
 	db.ChangeUserState(conn, tguserID, "home")
 	// Если у пользователя нет подписок, то выдаем ему клавиатуру
 	// без кнопки просмотра подписок
