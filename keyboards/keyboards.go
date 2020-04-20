@@ -57,3 +57,26 @@ var ListSubsKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardButtonData("Назад", "backToHome"),
 	),
 )
+
+// CreateKeyboarWithUserSubscriptions - генерирует клавиатуру со списком подписок.
+// На кнопках отображаются названия лекарств, нк которые оформлены подписки,
+// а в качестве data берутся их id
+func CreateKeyboarWithUserSubscriptions(subscriptions [][]string) tgbotapi.InlineKeyboardMarkup {
+	AllSubscriptionsKeyboard := tgbotapi.InlineKeyboardMarkup{}
+	for _, sub := range subscriptions {
+		id := sub[0]
+		name := sub[1]
+
+		var row []tgbotapi.InlineKeyboardButton
+
+		btn := tgbotapi.NewInlineKeyboardButtonData(name, id)
+		row = append(row, btn)
+		AllSubscriptionsKeyboard.InlineKeyboard = append(AllSubscriptionsKeyboard.InlineKeyboard, row)
+	}
+
+	var row []tgbotapi.InlineKeyboardButton
+	btn := tgbotapi.NewInlineKeyboardButtonData("Назад", "backToHome")
+	row = append(row, btn)
+	AllSubscriptionsKeyboard.InlineKeyboard = append(AllSubscriptionsKeyboard.InlineKeyboard, row)
+	return AllSubscriptionsKeyboard
+}
