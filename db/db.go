@@ -302,3 +302,14 @@ func CheckSelectedMed(db *sqlx.DB, tguserID int) (int, error) {
 	}
 	return medicamentID, nil
 }
+
+// ChangeSelectedMed - меняет выбранное пользователем лекарство
+func ChangeSelectedMed(db *sqlx.DB, medicamentID, tguserID int) error {
+	tx := db.MustBegin()
+	tx.MustExec("UPDATE tguser SET selected_med = $1 WHERE id = $2", medicamentID, tguserID)
+	err := tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}

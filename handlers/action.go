@@ -152,6 +152,11 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		return nil, nil, nil, err
 	}
 
+	err = db.ChangeSelectedMed(conn, medicamentID, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	// Проверяем подписан ли пользователь на это лекарство, что бы решить
 	// какую клавиатуру и текст необходимо отобразить
 	isSubscribe, err := db.IsUserSubToThisMed(conn, tguserID, medicamentID)
