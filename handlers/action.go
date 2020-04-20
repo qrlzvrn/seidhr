@@ -358,6 +358,11 @@ func InterceptMedicament(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (
 		return nil, nil, nil, err
 	}
 
+	err = db.ChangeSelectedMed(conn, medicamentID, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	// Отправляем запрос
 	medResp, err := med.ReqMedInfo(title)
 	if err != nil {
