@@ -277,3 +277,34 @@ func Subscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.C
 
 	return msg, newKeyboard, newText, nil
 }
+
+// Unsubscribe - отменяет подписку на лекарство для данного пользователя
+func Unsubscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+
+	tguserID := callbackQuery.From.ID
+
+	medTitle, err := db.CheckSelectedMed(conn, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	medicamentID, err := db.FindMedID(conn, medTitle)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	err = db.Unsubscribe(conn, tguserID, medicamentID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	db.ChangeUserState(conn, tguserID, "home")
+
+	msg = nil
+
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, keyboards.HomeWithSubKeyboard)
+
+	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Поздравляю, подписка отменена.\n\nХотите еще что-нибудь?")
+
+	return msg, newKeyboard, newText, nil
+}
