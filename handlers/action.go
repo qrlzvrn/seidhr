@@ -308,3 +308,23 @@ func Unsubscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi
 
 	return msg, newKeyboard, newText, nil
 }
+
+// ListSubscriptions - отправляет пользователю сообщение с информацией о всех его подписках
+func ListSubscriptions(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.Chattable, tgbotapi.Chattable, tgbotapi.Chattable, error) {
+
+	tguserID := callbackQuery.From.ID
+
+	subscriptions, err := db.ListUserSubscriptions(conn, tguserID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	subKeyboard := keyboards.CreateKeyboarWithUserSubscriptions(subscriptions)
+
+	msg = nil
+
+	newKeyboard = tgbotapi.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, subKeyboard)
+
+	newText = tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, "Ваши подписки:")
+
+	return msg, newKeyboard, newText, nil
+}
