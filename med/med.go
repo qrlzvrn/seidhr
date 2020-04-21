@@ -159,13 +159,13 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 
 		if anySub == true {
 
-			medsID, err := db.FindAllSubscriptionsMed(conn)
+			medsID, err := db.GetAllMedicamentsWithSub(conn)
 			if err != nil {
 				log.Fatalf("%+v", err)
 			}
 
 			for _, id := range medsID {
-				title, err := db.FindMedTitle(conn, id)
+				title, err := db.GetMedTitle(conn, id)
 				if err != nil {
 					log.Fatalf("%+v", err)
 				}
@@ -180,7 +180,7 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 					log.Fatalf("%+v", err)
 				}
 
-				availabillity, err := db.CheckAvailability(conn, id)
+				availabillity, err := db.GetAvailability(conn, id)
 				if err != nil {
 					log.Fatalf("%+v", err)
 				}
@@ -196,13 +196,13 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 					db.ChangeAvailability(conn, id, true)
 					// Теперь нужно уведомить всех пользователей,
 					// которые подписаны на данное лекарство
-					users, err := db.FindWhoSubToMed(conn, id)
+					users, err := db.GetSubscribers(conn, id)
 					if err != nil {
 						log.Fatalf("%+v", err)
 					}
 
 					for _, user := range users {
-						chatID, err := db.FindChatID(conn, user)
+						chatID, err := db.GetChatID(conn, user)
 						if err != nil {
 							log.Fatalf("%+v", err)
 						}

@@ -47,7 +47,7 @@ func MessageHandler(message *tgbotapi.Message) (tgbotapi.Chattable, tgbotapi.Cha
 		}
 		defer conn.Close()
 
-		state, err := db.CheckUserState(conn, tguserID)
+		state, err := db.GetUserState(conn, tguserID)
 		if err != nil {
 			return nil, nil, nil, err
 		}

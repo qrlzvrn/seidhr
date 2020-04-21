@@ -139,7 +139,7 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		return msg, newKeyboard, newText, nil
 	}
 
-	trueName, err := db.FindTrueMedName(conn, medTitle)
+	trueName, err := db.GetTrueMedName(conn, medTitle)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -151,7 +151,7 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 	}
 
 	// Находим id нашго лекарства
-	medicamentID, err := db.FindMedID(conn, trueName)
+	medicamentID, err := db.GetMedID(conn, trueName)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -236,7 +236,7 @@ func BackToHome(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.
 		return nil, nil, nil, err
 	}
 
-	state, err := db.CheckUserState(conn, tguserID)
+	state, err := db.GetUserState(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -279,7 +279,7 @@ func Subscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi.C
 
 	tguserID := callbackQuery.From.ID
 
-	medicamentID, err := db.CheckSelectedMed(conn, tguserID)
+	medicamentID, err := db.GetSelectedMed(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -305,7 +305,7 @@ func Unsubscribe(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tgbotapi
 
 	tguserID := callbackQuery.From.ID
 
-	medicamentID, err := db.CheckSelectedMed(conn, tguserID)
+	medicamentID, err := db.GetSelectedMed(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -346,7 +346,7 @@ func ListSubscriptions(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (tg
 
 	tguserID := callbackQuery.From.ID
 
-	subscriptions, err := db.ListUserSubscriptions(conn, tguserID)
+	subscriptions, err := db.GetUserSubscriptions(conn, tguserID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -372,7 +372,7 @@ func InterceptMedicament(callbackQuery *tgbotapi.CallbackQuery, conn *sqlx.DB) (
 		return nil, nil, nil, err
 	}
 
-	title, err := db.FindMedTitle(conn, medicamentID)
+	title, err := db.GetMedTitle(conn, medicamentID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
