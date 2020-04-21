@@ -129,15 +129,19 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		return nil, nil, nil, err
 	}
 
+	if isExist == false {
+		msgConf := tgbotapi.NewMessage(message.Chat.ID, "Простите, но кажется вы неправильно написали название, либо это лекарство не льготное. Попробуйте еще раз:")
+		msgConf.ReplyMarkup = keyboards.MedSearchKeyboard
+
+		newKeyboard = nil
+		newText = nil
+
+		return msg, newKeyboard, newText, nil
+	}
+
 	trueName, err := db.FindTrueMedName(conn, medTitle)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-
-	if isExist == false {
-		msg = tgbotapi.NewMessage(message.Chat.ID, "Простите, но кажется вы неправильно написали название, либо это лекарство не льготное. Попробуйте еще раз:")
-		newKeyboard = nil
-		newText = nil
 	}
 
 	// Отправляем запрос
