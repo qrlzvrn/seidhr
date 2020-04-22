@@ -13,6 +13,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/qrlzvrn/seidhr/db"
+	"github.com/qrlzvrn/seidhr/errorz"
 	"github.com/qrlzvrn/seidhr/keyboards"
 )
 
@@ -228,6 +229,7 @@ func CyclicMedSearch(bot *tgbotapi.BotAPI, c chan bool) {
 func ReadFileWithMeds() ([]string, error) {
 	file, err := os.Open("drugs.txt")
 	if err != nil {
+		err := errorz.NewErrStack("Ошибка открытия файла drugs.txt")
 		return nil, err
 	}
 	defer file.Close()

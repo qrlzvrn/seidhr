@@ -7,23 +7,27 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/qrlzvrn/seidhr/config"
+	"github.com/qrlzvrn/seidhr/errorz"
 )
 
 // ConnectToDB - подключается к базе данных и возвращаент конект
 func ConnectToDB() (*sqlx.DB, error) {
 	conf, err := config.InitConf()
 	if err != nil {
+		err := errorz.NewErrStack("Не удалось инициализировать конфиг для базы данных")
 		return nil, err
 	}
 
 	port, err := strconv.Atoi(conf.DB.Port)
 	if err != nil {
+		err := errorz.NewErrStack("В конфигурационном файле порт базы данных указан некорректно")
 		return nil, err
 	}
 
 	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.DB.Host, port, conf.DB.Username, conf.DB.Password, conf.DB.Name)
 
 	if db, err := sqlx.Connect("postgres", dbInfo); err != nil {
+		err := errorz.NewErrStack("Не удалось подключиться к базе данных")
 		return nil, err
 	} else {
 		return db, nil
@@ -36,6 +40,7 @@ func CreateUser(db *sqlx.DB, tguserID int, chatID int64) error {
 	tx.MustExec("INSERT INTO tguser (id, chat_id, state, selected_med) VALUES ($1, $2, $3, $4)", tguserID, chatID, "born", 0)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("При попытке создания нового пользователя что-то пошло не так")
 		return err
 	}
 
@@ -47,6 +52,7 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from tguser where id=$1)", tguserID).Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки существования пользователя закончился ошибкой")
 		return false, err
 	}
 	return isExist, nil
@@ -57,6 +63,7 @@ func GetUserState(db *sqlx.DB, tguserID int) (string, error) {
 	var state string
 	err := db.QueryRow("SELECT state from tguser where id=$1", tguserID).Scan(&state)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе для получения состояния пользователя закончился ошибкой")
 		return "", err
 	}
 	return state, nil
@@ -68,6 +75,7 @@ func ChangeUserState(db *sqlx.DB, tguserID int, state string) error {
 	tx.MustExec("UPDATE tguser SET state=$1 where id=$2", state, tguserID)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для изменения состояния пользователя закончился ошибкой")
 		return err
 	}
 	return nil
@@ -82,6 +90,7 @@ func InitMedList(db *sqlx.DB, medLines []string) error {
 	}
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для заполнения таблицы medicament значениями закончился ошибкой")
 		return err
 	}
 	return nil
@@ -93,6 +102,7 @@ func IsMedListExist(db *sqlx.DB) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from medicament)").Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки существования списка лекарств закончился ошибкой")
 		return false, err
 	}
 	return isExist, nil
@@ -104,6 +114,7 @@ func IsMedExist(db *sqlx.DB, medName string) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (select 1 from medicament where title % $1)", medName).Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки существования лекарсвта закончился ошибкой")
 		return false, err
 	}
 	return isExist, nil
@@ -121,6 +132,7 @@ func GetTrueMedName(db *sqlx.DB, medName string) (string, error) {
 	var trueName string
 	err := db.QueryRow("SELECT title FROM medicament WHERE title % $1", medName).Scan(&trueName)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения правильного названия лекарства закончился ошибкой")
 		return "", err
 	}
 	return trueName, nil
@@ -132,6 +144,7 @@ func Subscribe(db *sqlx.DB, tguserID int, medicamentID int) error {
 	tx.MustExec("INSERT INTO subscription (tguser_id, medicament_id) VALUES ($1, $2)", tguserID, medicamentID)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для оформления пописки закончился ошибкой")
 		return err
 	}
 	return nil
@@ -143,6 +156,7 @@ func Unsubscribe(db *sqlx.DB, tguserID int, medicamentID int) error {
 	tx.MustExec("DELETE FROM subscription WHERE tguser_id = $1 AND medicament_id = $2", tguserID, medicamentID)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для отмены подписки закончился ошибкой")
 		return err
 	}
 	return nil
@@ -153,6 +167,7 @@ func Unsubscribe(db *sqlx.DB, tguserID int, medicamentID int) error {
 func GetUserSubscriptions(db *sqlx.DB, tguserID int) ([][]string, error) {
 	rows, err := db.Query("SELECT id, title from medicament INNER JOIN subscription on medicament.id=subscription.medicament_id WHERE subscription.tguser_id = $1", tguserID)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения всех подписок пользователя закончился ошибкой")
 		return nil, err
 	}
 
@@ -174,6 +189,7 @@ func IsUserSubToThisMed(db *sqlx.DB, tguserID int, medicamentID int) (bool, erro
 	var isExist bool
 	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1 AND medicament_id=$2)", tguserID, medicamentID).Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки того, подписан ли пользователь на данное лекарство закончился ошибкой")
 		return false, err
 	}
 	return isExist, nil
@@ -185,6 +201,7 @@ func IsUserHasSub(db *sqlx.DB, tguserID int) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription WHERE tguser_id=$1)", tguserID).Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки наличия у пользователя хотя бы одной подписки закончился ошибкой")
 		return false, err
 	}
 	return isExist, nil
@@ -195,6 +212,7 @@ func IsUserHasSub(db *sqlx.DB, tguserID int) (bool, error) {
 func GetAllMedicamentsWithSub(db *sqlx.DB) ([]int, error) {
 	rows, err := db.Query("SELECT DISTINCT medicament_id FROM subscription")
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для нахождения всех лекарств с оформленными подписками закончился ошибкой")
 		return nil, err
 	}
 
@@ -215,6 +233,7 @@ func GetAllMedicamentsWithSub(db *sqlx.DB) ([]int, error) {
 func GetSubscribers(db *sqlx.DB, medicamentID int) ([]int, error) {
 	rows, err := db.Query("SELECT tguser_id FROM subscription WHERE medicament_id = $1", medicamentID)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения всех пользователей подписанных на данное лекарство закончился ошибкой")
 		return nil, err
 	}
 
@@ -235,6 +254,7 @@ func GetChatID(db *sqlx.DB, tguserID int) (int, error) {
 	var chatID int
 	err := db.QueryRow("SELECT chat_id FROM tguser WHERE id = $1", tguserID).Scan(&chatID)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения chatID пользователя закончился ошибкой")
 		return 0, err
 	}
 	return chatID, nil
@@ -245,6 +265,7 @@ func GetAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
 	var availible bool
 	err := db.QueryRow("SELECT availability FROM medicament WHERE id = $1", medicamentID).Scan(&availible)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки наличия лекарства закончился ошибкой")
 		return false, err
 	}
 	return availible, nil
@@ -256,6 +277,7 @@ func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 	tx.MustExec("UPDATE medicament SET availability = $1 WHERE id = $2", value, medicamentID)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для изменения доступности лекарства закончился ошибкой")
 		return err
 	}
 	return nil
@@ -266,6 +288,7 @@ func GetMedID(db *sqlx.DB, medTitle string) (int, error) {
 	var medicamentID int
 	err := db.QueryRow("SELECT id FROM medicament WHERE title = $1", medTitle).Scan(&medicamentID)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения id лекарства закончился ошибкой")
 		return 0, err
 	}
 	return medicamentID, nil
@@ -276,6 +299,7 @@ func GetMedTitle(db *sqlx.DB, medicamentID int) (string, error) {
 	var medTitle string
 	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения названия лекарства закончился ошибкой")
 		return "", err
 	}
 	return medTitle, nil
@@ -287,6 +311,7 @@ func AreTheAnySubscriptions(db *sqlx.DB) (bool, error) {
 	var isExist bool
 	err := db.QueryRow("SELECT exists (SELECT 1 FROM subscription )").Scan(&isExist)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для проверки существования хотя бы одной подписки закончился ошибкой")
 		return false, err
 	}
 
@@ -298,6 +323,7 @@ func GetSelectedMed(db *sqlx.DB, tguserID int) (int, error) {
 	var medicamentID int
 	err := db.QueryRow("SELECT selected_med FROM tguser WHERE id = $1", tguserID).Scan(&medicamentID)
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для получения выбранного пользователем лекарства закончился ошибкой")
 		return 0, err
 	}
 	return medicamentID, nil
@@ -309,6 +335,7 @@ func ChangeSelectedMed(db *sqlx.DB, medicamentID, tguserID int) error {
 	tx.MustExec("UPDATE tguser SET selected_med = $1 WHERE id = $2", medicamentID, tguserID)
 	err := tx.Commit()
 	if err != nil {
+		err := errorz.NewErrStack("Запрос к базе данных для изменения выбранного пользователем лекарства закончился ошибкой")
 		return err
 	}
 	return nil
