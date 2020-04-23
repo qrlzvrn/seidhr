@@ -133,6 +133,7 @@ func SearchMedAct(message *tgbotapi.Message, conn *sqlx.DB, tguserID int) (tgbot
 		msgConf := tgbotapi.NewMessage(message.Chat.ID, "Простите, но кажется вы неправильно написали название, либо это лекарство не льготное. Попробуйте еще раз:")
 		msgConf.ReplyMarkup = keyboards.MedSearchKeyboard
 
+		msg = msgConf
 		newKeyboard = nil
 		newText = nil
 
