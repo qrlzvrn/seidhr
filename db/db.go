@@ -58,7 +58,7 @@ func CheckUser(db *sqlx.DB, tguserID int) (bool, error) {
 	return isExist, nil
 }
 
-// CheckUserState - проверяет состояние пользователя
+// GetUserState - проверяет состояние пользователя
 func GetUserState(db *sqlx.DB, tguserID int) (string, error) {
 	var state string
 	err := db.QueryRow("SELECT state from tguser where id=$1", tguserID).Scan(&state)
@@ -120,7 +120,7 @@ func IsMedExist(db *sqlx.DB, medName string) (bool, error) {
 	return isExist, nil
 }
 
-// FindTrueMedName - выводит правильное название лекарства, если пользователь
+// GetTrueMedName - выводит правильное название лекарства, если пользователь
 // ввел название с опечатками.
 //
 // Данная функция используется в связке с IsMedExist.
@@ -249,7 +249,7 @@ func GetSubscribers(db *sqlx.DB, medicamentID int) ([]int, error) {
 	return users, nil
 }
 
-// FindChatID - находит пользователя и возвращает его chatID
+// GetChatID - находит пользователя и возвращает его chatID
 func GetChatID(db *sqlx.DB, tguserID int) (int, error) {
 	var chatID int
 	err := db.QueryRow("SELECT chat_id FROM tguser WHERE id = $1", tguserID).Scan(&chatID)
@@ -260,7 +260,7 @@ func GetChatID(db *sqlx.DB, tguserID int) (int, error) {
 	return chatID, nil
 }
 
-// CheckAvailability - проверяет наличие лекарства записаное в базе
+// GetAvailability - проверяет наличие лекарства записаное в базе
 func GetAvailability(db *sqlx.DB, medicamentID int) (bool, error) {
 	var availible bool
 	err := db.QueryRow("SELECT availability FROM medicament WHERE id = $1", medicamentID).Scan(&availible)
@@ -283,7 +283,7 @@ func ChangeAvailability(db *sqlx.DB, medicamentID int, value bool) error {
 	return nil
 }
 
-// FindMedID - находит id необхомодимого лекартсва
+// GetMedID - находит id необхомодимого лекартсва
 func GetMedID(db *sqlx.DB, medTitle string) (int, error) {
 	var medicamentID int
 	err := db.QueryRow("SELECT id FROM medicament WHERE title = $1", medTitle).Scan(&medicamentID)
@@ -294,7 +294,7 @@ func GetMedID(db *sqlx.DB, medTitle string) (int, error) {
 	return medicamentID, nil
 }
 
-// FindMedTitle - находит название лекарства по его id
+// GetMedTitle - находит название лекарства по его id
 func GetMedTitle(db *sqlx.DB, medicamentID int) (string, error) {
 	var medTitle string
 	err := db.QueryRow("SELECT title FROM medicament WHERE id = $1", medicamentID).Scan(&medTitle)
@@ -318,7 +318,7 @@ func AreTheAnySubscriptions(db *sqlx.DB) (bool, error) {
 	return isExist, nil
 }
 
-// CheckSelectedMed - получает id лекарства выбранного пользователем в данный момент
+// GetSelectedMed - получает id лекарства выбранного пользователем в данный момент
 func GetSelectedMed(db *sqlx.DB, tguserID int) (int, error) {
 	var medicamentID int
 	err := db.QueryRow("SELECT selected_med FROM tguser WHERE id = $1", tguserID).Scan(&medicamentID)
